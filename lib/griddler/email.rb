@@ -3,8 +3,8 @@ require 'htmlentities'
 module Griddler
   class Email
     include ActionView::Helpers::SanitizeHelper
-    attr_reader :to, :from, :subject, :body, :raw_body, :raw_text, :raw_html,
-      :headers, :raw_headers, :attachments
+    attr_accessor :to, :from, :subject, :body, :raw_body, :raw_text, :raw_html,
+      :headers, :raw_headers, :attachments, :charsets
 
     def initialize(params)
       @params = params
@@ -22,11 +22,17 @@ module Griddler
       @raw_headers = params[:headers]
 
       @attachments = params[:attachments]
+
+      @charsets = params[:charsets]
     end
 
     def process
       processor_class = config.processor_class
       processor_class.process(self)
+    end
+
+    def cleaned_raw_html
+      clean_invalid_utf8_bytes(self.raw_html, 'html')
     end
 
     private
